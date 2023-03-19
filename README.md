@@ -36,7 +36,7 @@ try {
 }
 ```
 
-To save a file chunk
+To save a file chunk ( append to an existing file )
 ```
 try {
     const tChunkBlob = new Blob([]); // YOUR BLOB DATA
