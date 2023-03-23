@@ -1,0 +1,7 @@
+{
+  "name": "capacitor-file-chunk-demo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

@@ -1,0 +1,43 @@
+<ng-container *ngIf="mFileChunkServerInfo">
+  <ion-list lines="full">
+    <ion-list-header>
+      <ion-label>Server Info</ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-label>
+        <h3>Platform | Version</h3>
+        <p>{{ mFileChunkServerInfo.platform }} | {{ mFileChunkServerInfo.version }}</p>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-label>
+        <h3>Base Url</h3>
+        <p>{{ mFileChunkServerInfo.baseUrl }}</p>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-label>
+        <h3>Auth Token</h3>
+        <p>{{ mFileChunkServerInfo.authToken }}</p>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-label>
+        <h3>Encryption</h3>
+        <p>{{ mFileChunkServerInfo.encryptionType }}</p>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-label>
+        <div
+          [ngClass]="{
+            'app-server-ready': mFileChunkServerInfo.ready,
+            'app-server-not-ready': !mFileChunkServerInfo.ready
+          }">
+          <h3>Ready</h3>
+          <p>{{ mFileChunkServerInfo.ready }}</p>
+        </div>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ng-container>
