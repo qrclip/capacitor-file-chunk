@@ -16,50 +16,97 @@ public class FileChunkPlugin extends Plugin {
     private FileChunkServer mServer = null;
 
     ////////////////////////////////////////////////////////////////
-    // LOAD
-    @Override
-    public void load() {
-        super.load();
+    // START SERVER
+    @PluginMethod
+    public void startServer(PluginCall call) {
+        // GET CONFIGURATION PARAMETERS
+        String tEncryptionKeyBase64 = call.getString("key");
+        boolean tUseEncryption = Boolean.TRUE.equals(call.getBoolean("encryption"));
+        Integer tPort = call.getInt("port", 0);
+        Integer tPortMin = call.getInt("portMin", 49151);
+        Integer tPortMax = call.getInt("portMax", 65536);
+        Integer tRetries = call.getInt("retries", 5);
+        Integer tChunkSize = call.getInt("chunkSize", 10024000);
 
-        // listen on an open port
-        int tRetriesLeft = 5;
+        if (tUseEncryption){
+            tChunkSize += 12 + 16; // IV AND AUTH TAG
+        }
 
-        // range of private ports
-        int tStartPort = 49151;
-        int tEndPort = 65536;
+        // INIT THE SERVER
+        this.initTheServerInstance(tPort, tPortMin, tPortMax, tRetries, tChunkSize);
+
+        JSObject tResponse = new JSObject();
+        tResponse.put("version", 2);
+        tResponse.put("platform", "android");
+
+        // IF SERVER CREATED
+        if(this.mServer != null && this.mServer.getListeningPort() > 0) {
+            boolean tEncryptionOK = this.mServer.setEncryption(tUseEncryption, tEncryptionKeyBase64);
+            tResponse.put("baseUrl", "http://localhost:" + this.mServer.getListeningPort());
+            tResponse.put("authToken", this.mServer.getAuthToken());
+            tResponse.put("chunkSize", tChunkSize);
+            if(tUseEncryption && tEncryptionOK){
+                tResponse.put("encryptionType", "ChaCha20-Poly1305");
+            } else {
+                tResponse.put("encryptionType", "none");
+            }
+            tResponse.put("ready", tEncryptionOK);
+        } else {
+            // IF SERVER FAILED TO CREATE
+            tResponse.put("baseUrl", "");
+            tResponse.put("authToken", "");
+            tResponse.put("chunkSize", 0);
+            tResponse.put("encryptionType", "none");
+            tResponse.put("ready", false);
+        }
+        call.resolve(tResponse);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // START SERVER
+    @PluginMethod
+    public void stopServer(PluginCall call) {
+        if(this.mServer != null){
+            this.mServer.stop();
+            this.mServer = null;
+        }
+        call.resolve();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // INIT THE SERVER INSTANCE
+    private void initTheServerInstance(Integer tFixedPort, Integer tPortMin, Integer tPortMax, Integer tRetries, Integer tChunkSize) {
+        // RETRIES LEFT
+        int tRetriesLeft = tRetries;
+
+        // IF FIXED PORT SET USE THAT
+        if(tFixedPort>0){
+            this.StartServerAtPort(tFixedPort, tChunkSize);
+            if(tRetries <= 0){ // IF NO RETRIES ARE SET NO MORE ARE TRIED
+                return;
+            }
+        }
+
+        // RANGE OF PORTS TO TRY
+        int tStartPort = tPortMin;
+        int tEndPort = tPortMax;
         Random tRandom = new Random();
-
         while (this.mServer == null && tRetriesLeft > 0) {
             int tPort = tStartPort + tRandom.nextInt(tEndPort - tStartPort);
-            this.mServer = new FileChunkServer(tPort);
-            FileChunkServer tServer = new FileChunkServer(tPort);
-            try {
-                tServer.start();
-                this.mServer = tServer;
-            } catch (IOException ex) {
-                Log.e(getLogTag(), "Failed to start server on port " + tPort, ex);
-            }
+            this.StartServerAtPort(tPort, tChunkSize);
             tRetriesLeft--;
         }
     }
 
     ////////////////////////////////////////////////////////////////
-    // CONNECT INFO
-    @PluginMethod
-    public void connectInfo(PluginCall call) {
-        JSObject ret = new JSObject();
-        ret.put("version", 1);
-        ret.put("platform", "android");
-        if (this.mServer != null) {
-            ret.put("baseUrl", "http://localhost:" + this.mServer.getListeningPort());
-            ret.put("AuthToken", this.mServer.getAuthToken());
-            ret.put("chunkSize", 10024000);
-            call.resolve(ret);
-        } else {
-            ret.put("baseUrl", "");
-            ret.put("AuthToken", "");
-            ret.put("chunkSize", 0);
-            call.resolve(ret);
+    // START SERVER AT PORT
+    private void StartServerAtPort(Integer tPort, Integer tMaxSize) {
+        FileChunkServer tServer = new FileChunkServer(tPort, tMaxSize);
+        try {
+            tServer.start();
+            this.mServer = tServer;
+        } catch (IOException ex) {
+            Log.e(getLogTag(), "Failed to start server on port " + tPort, ex);
         }
     }
 }

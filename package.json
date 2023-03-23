@@ -1,6 +1,6 @@
 {
   "name": "capacitor-file-chunk",
-  "version": "0.5.1",
+  "version": "0.9.0",
   "description": "Capacitor plugin to read and write files in chunks using a local server and without using capacitor bridge.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -14,6 +14,7 @@
     "CapacitorFileChunk.podspec"
   ],
   "author": "QRClip",
+  "homepage": "https://www.qrclip.io/",
   "license": "MIT",
   "repository": {
     "type": "git",

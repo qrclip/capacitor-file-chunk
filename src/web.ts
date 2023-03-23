@@ -1,18 +1,26 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { FileChunkPlugin, FileChunkConnectInfo } from './definitions';
+import type { FileChunkPlugin, FileChunkServerInfo, FileChunkConfiguration } from './definitions';
 
 
 export class FileChunkWeb extends WebPlugin implements FileChunkPlugin {
   ////////////////////////////////////////////////////////////////
-  // CONNECT INFO
-  async connectInfo(): Promise<FileChunkConnectInfo> {
+  // START SERVER
+  async startServer(_options: FileChunkConfiguration): Promise<FileChunkServerInfo> {
     return {
-      version: 1,
+      version: 2,
       platform: 'web',
       baseUrl: 'not-needed',
-      AuthToken: 'not-needed',
-      chunkSize: 0
+      authToken: 'not-needed',
+      chunkSize: 0,
+      encryptionType: 'none',
+      ready: false
     }
+  }
+
+  ////////////////////////////////////////////////////////////////
+  // STOP SERVER
+  async stopServer(): Promise<void> {
+    // DO NOTHING
   }
 }
