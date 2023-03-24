@@ -47,7 +47,7 @@ export class UsagePage {
     }
 
     const tData2Compare: Uint8Array = new Uint8Array([5, 7, 11, 13]);
-    if (tChunkData && tChunkData !== tData2Compare) {
+    if (tChunkData && JSON.stringify(tChunkData) !== JSON.stringify(tData2Compare)) {
       console.error('## Error wrong data!');
       return;
     }
