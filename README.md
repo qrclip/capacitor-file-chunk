@@ -186,7 +186,7 @@ Efficiently upload large files in Capacitor applications by reading parts of a f
 
 ### Downloading large files
 Download large files in smaller, manageable chunks and merge them into a single file. This is particularly useful for applications that need to download large files, such as videos or images, without consuming too much memory. Keep in mind that this feature depends on the backend. If your backend already divides files into chunks, using this feature is straightforward. However, if your backend does not divide files, you will need to make GET requests with the range header to retrieve parts of a file.
-- **[Example using fetch and range headers]((https://github.com/qrclip/capacitor-file-chunk/tree/main/demo/src/app/download01))**
+- **[Example using fetch and range headers](https://github.com/qrclip/capacitor-file-chunk/tree/main/demo/src/app/download01)**
 
 
 ### Storing offline data
