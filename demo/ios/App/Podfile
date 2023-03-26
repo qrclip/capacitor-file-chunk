@@ -16,7 +16,7 @@ def capacitor_pods
   pod 'CapacitorHaptics', :path => '../../node_modules/@capacitor/haptics'
   pod 'CapacitorKeyboard', :path => '../../node_modules/@capacitor/keyboard'
   pod 'CapacitorStatusBar', :path => '../../node_modules/@capacitor/status-bar'
-  pod 'CapacitorFileChunk', :path => '../../node_modules/capacitor-file-chunk'
+  pod 'CapacitorFileChunk', :path => '../../..'
 end
 
 target 'App' do

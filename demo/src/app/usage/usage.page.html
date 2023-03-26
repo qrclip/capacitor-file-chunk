@@ -1,11 +1,17 @@
 <ion-content #content>
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Capacitor File Chunk Usage</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
+  <app-page-header [mTitle]="'Usage'"></app-page-header>
   <div>
-    <ion-button expand="block" color="success" (click)="doEverything()">DO</ion-button>
+    <ion-button (click)="doEverything()" *ngIf="mLogEntries === ''" color="success" expand="block">DO</ion-button>
+
+    <!--LOG-->
+    <ion-item>
+      <ion-textarea
+        [autoGrow]="true"
+        [value]="mLogEntries"
+        placeholder="Console"
+        readonly="true"
+        style="font-size: 0.8rem; margin-bottom: 30px">
+      </ion-textarea>
+    </ion-item>
   </div>
 </ion-content>

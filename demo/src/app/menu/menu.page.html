@@ -1,0 +1,30 @@
+<ion-content #content>
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Capacitor File Chunk Demo</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div>
+    <ion-list lines="full">
+      <ion-item [routerLink]="'/benchmark'" detail="true">
+        <ion-label>
+          <h3>Benchmark</h3>
+          <p>For benchmark reading and writing of files</p>
+        </ion-label>
+      </ion-item>
+      <ion-item [routerLink]="'/usage'" detail="true">
+        <ion-label>
+          <h3>Usage</h3>
+          <p>Save and read a simple file example</p>
+        </ion-label>
+      </ion-item>
+      <ion-item [routerLink]="'/download01'" detail="true">
+        <ion-label>
+          <h3>Download Fetch & Range</h3>
+          <p>Using fetch and range headers</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>

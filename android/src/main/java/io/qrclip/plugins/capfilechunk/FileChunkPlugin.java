@@ -27,13 +27,13 @@ public class FileChunkPlugin extends Plugin {
         Integer tPortMax = call.getInt("portMax", 65536);
         Integer tRetries = call.getInt("retries", 5);
         Integer tChunkSize = call.getInt("chunkSize", 10024000);
-
+        Integer tChunkSizeFinal = tChunkSize;
         if (tUseEncryption){
-            tChunkSize += 12 + 16; // IV AND AUTH TAG
+            tChunkSizeFinal += 12 + 16; // IV AND AUTH TAG
         }
 
         // INIT THE SERVER
-        this.initTheServerInstance(tPort, tPortMin, tPortMax, tRetries, tChunkSize);
+        this.initTheServerInstance(tPort, tPortMin, tPortMax, tRetries, tChunkSizeFinal);
 
         JSObject tResponse = new JSObject();
         tResponse.put("version", 2);

@@ -24,32 +24,43 @@ class FileChunkProcessor {
     
     // PROCESS DECRYPTION
     public func processDecryption(data: Data) -> [UInt8] {
+        // IN CASE THERES NO ENCRYPTION JUST RETURN THE DATA HAS [UInt8]
         if !mEncrypt {
             return [UInt8](data)
         }
-        
+
+        // NO KEY RETURN EMPTY ARRAY
         if mEncryptionKey == nil {
             return []
         }
-        
+
+        // DECRYPT THE DATA
         if let decryptedData = chacha20Poly1305Decrypt(key: mEncryptionKey!, combinedData: data) {
             return [UInt8](decryptedData)
         }
-        
+
+        // IF ARRIVES HERE, MAYBE DECRYPTION FAILED ( RETURN EMPTY ARRAY )
         return []
     }
     
     // PROCESS ENCRYPTION
     public func processEncryption(data: Data) -> Data {
+        // IN CASE THERES NO ENCRYPTION JUST RETURN THE DATA HAS [UInt8]
         if !mEncrypt {
             return data
         }
+
+        // NO KEY RETURN EMPTY DATA
         if mEncryptionKey == nil {
             return Data()
         }
-         if let (encryptedData) = chacha20Poly1305Encrypt(key: mEncryptionKey!, data: data) {
+
+        // ENCRYPT THE DATA
+        if let (encryptedData) = chacha20Poly1305Encrypt(key: mEncryptionKey!, data: data) {
             return encryptedData
         }
+
+        // IF ARRIVES HERE, MAYBE ENCRYPTION FAILED ( RETURN EMPTY DATA )
         return Data()
     }
     

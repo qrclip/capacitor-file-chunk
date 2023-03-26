@@ -1,9 +1,16 @@
-import { FileChunkManager } from './file-chunk.manager';
-import { Directory } from '@capacitor/filesystem';
-import { StatOptions, StatResult, WriteFileOptions, WriteFileResult } from '@capacitor/filesystem/dist/esm/definitions';
-import { FileChunkConfiguration, FileChunkServerInfo } from '../../../../capacitor-file-chunk/src';
+import {FileChunkManager} from './file-chunk.manager';
+import {Directory} from '@capacitor/filesystem';
+import {
+  GetUriOptions,
+  GetUriResult,
+  StatOptions,
+  StatResult,
+  WriteFileOptions,
+  WriteFileResult,
+} from '@capacitor/filesystem/dist/esm/definitions';
+import {FileChunkConfiguration, FileChunkServerInfo} from '../../../../capacitor-file-chunk/src';
 import * as Sodium from 'libsodium-wrappers';
-import { base64_variants } from 'libsodium-wrappers';
+import {base64_variants} from 'libsodium-wrappers';
 
 // MOCKED FileChunk Plugin
 export class MockedFileChunk {
@@ -16,9 +23,11 @@ export class MockedFileChunk {
     encryptionType: 'none',
     ready: false,
   };
+
   async startServer(_options: FileChunkConfiguration): Promise<FileChunkServerInfo> {
     return this.mFileChunkServerInfo;
   }
+
   async stopServer(): Promise<void> {}
 }
 
@@ -26,13 +35,26 @@ export class MockedFileChunk {
 export class MockedFileSystem {
   public mStatResult: StatResult | null = null;
   public mWriteFileResult: WriteFileResult | null = null;
+  public mWriteFileReject = false;
+  public mGetUriResult: GetUriResult | null = null;
+  public mGetUriResultReject = false;
 
   public stat(options: StatOptions): Promise<StatResult | null> {
     return Promise.resolve(this.mStatResult);
   }
 
   writeFile(options: WriteFileOptions): Promise<WriteFileResult | null> {
+    if (this.mWriteFileReject) {
+      return Promise.reject();
+    }
     return Promise.resolve(this.mWriteFileResult);
+  }
+
+  getUri(options: GetUriOptions): Promise<GetUriResult | null> {
+    if (this.mGetUriResultReject) {
+      return Promise.reject();
+    }
+    return Promise.resolve(this.mGetUriResult);
   }
 }
 
@@ -250,6 +272,24 @@ describe('FileChunkManager', () => {
   });
 
   ///////////////////////////////////////////////////////
+  // CREATE EMPTY FILE FAIL EXCEPTION
+  it('create empty file - fail exception', async () => {
+    const tMockedFileSystem = new MockedFileSystem();
+
+    tMockedFileSystem.mWriteFileReject = true;
+
+    // @ts-ignore
+    mFileChunkManager.mFilesystem = tMockedFileSystem as unknown;
+
+    spyOn(mFileChunkManager.mFilesystem, 'writeFile').and.callThrough();
+
+    const tPath = await mFileChunkManager.createEmptyFile('/fake/path.txt', Directory.Data);
+
+    expect(mFileChunkManager.mFilesystem.writeFile).toHaveBeenCalled();
+    expect(tPath).toEqual('');
+  });
+
+  ///////////////////////////////////////////////////////
   // APPEND CHUNK TO FILE - NO ENCRYPTION
   it('appendChunkToFile - no encryption', async () => {
     await mFileChunkManager.startServer({ encryption: false });
@@ -454,5 +494,63 @@ describe('FileChunkManager', () => {
     expect(mFileChunkManager.mEncryptionKey).toBeNull();
     expect(mFileChunkManager.mEncryption).toBeFalse();
     expect(mFileChunkManager.mFileChunk.stopServer).toHaveBeenCalled();
+  });
+
+  ///////////////////////////////////////////////////////
+  // GET PATH - OK
+  it('get path - ok', async () => {
+    const tMockedFileSystem = new MockedFileSystem();
+    tMockedFileSystem.mGetUriResult = {
+      uri: 'file:///fake/path.txt',
+    };
+
+    // @ts-ignore
+    mFileChunkManager.mFilesystem = tMockedFileSystem as unknown;
+
+    spyOn(mFileChunkManager.mFilesystem, 'getUri').and.callThrough();
+
+    const tUri = await mFileChunkManager.getPath('/path.txt', Directory.Cache);
+
+    expect(mFileChunkManager.mFilesystem.getUri).toHaveBeenCalled();
+    expect(tUri).toEqual('/fake/path.txt');
+  });
+
+  ///////////////////////////////////////////////////////
+  // GET PATH NOT FOUND
+  it('get path - not found', async () => {
+    const tMockedFileSystem = new MockedFileSystem();
+    tMockedFileSystem.mGetUriResult = {
+      uri: '',
+    };
+
+    // @ts-ignore
+    mFileChunkManager.mFilesystem = tMockedFileSystem as unknown;
+
+    spyOn(mFileChunkManager.mFilesystem, 'getUri').and.callThrough();
+
+    const tUri = await mFileChunkManager.getPath('/path.txt', Directory.Cache);
+
+    expect(mFileChunkManager.mFilesystem.getUri).toHaveBeenCalled();
+    expect(tUri).toEqual('');
+  });
+
+  ///////////////////////////////////////////////////////
+  // GET PATH EXCEPTION
+  it('get path - exception', async () => {
+    const tMockedFileSystem = new MockedFileSystem();
+    tMockedFileSystem.mGetUriResult = {
+      uri: '',
+    };
+    tMockedFileSystem.mGetUriResultReject = true;
+
+    // @ts-ignore
+    mFileChunkManager.mFilesystem = tMockedFileSystem as unknown;
+
+    spyOn(mFileChunkManager.mFilesystem, 'getUri').and.callThrough();
+
+    const tUri = await mFileChunkManager.getPath('/path.txt', Directory.Cache);
+
+    expect(mFileChunkManager.mFilesystem.getUri).toHaveBeenCalled();
+    expect(tUri).toEqual('');
   });
 });

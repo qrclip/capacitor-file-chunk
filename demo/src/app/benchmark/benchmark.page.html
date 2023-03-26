@@ -1,18 +1,14 @@
 <ion-content #content>
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Capacitor File Chunk Demo</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <app-page-header [mTitle]="'Benchmark'"></app-page-header>
 
   <div>
     <ng-container *ngIf="!mFileChunkServerInfo">
       <ng-container *ngIf="!this.mStartingServer">
-        <ion-button expand="block" color="success" (click)="onStartServer()" style="margin-top: 20px"
-          >START SERVER</ion-button
-        >
+        <ion-button (click)="onStartServer()" color="success" expand="block" style="margin-top: 20px"
+          >START SERVER
+        </ion-button>
         <ion-item lines="full">
-          <ion-checkbox slot="start" [(ngModel)]="mEncryptCommunications"></ion-checkbox>
+          <ion-checkbox [(ngModel)]="mEncryptCommunications" slot="start"></ion-checkbox>
           <ion-label>Encrypt Data (localhost)</ion-label>
         </ion-item>
       </ng-container>
@@ -23,9 +19,9 @@
 
     <ng-container *ngIf="mFileChunkServerInfo">
       <ng-container *ngIf="mShowTestButton">
-        <ion-button expand="block" color="warning" (click)="onStopServer()" style="margin-top: 20px"
-          >STOP SERVER</ion-button
-        >
+        <ion-button (click)="onStopServer()" color="warning" expand="block" style="margin-top: 20px"
+          >STOP SERVER
+        </ion-button>
 
         <!--PLUGIN INFO-->
         <app-plugin-info [mFileChunkServerInfo]="mFileChunkServerInfo"></app-plugin-info>
@@ -36,32 +32,32 @@
             <h3>Test file size {{ mFileSizeMB }} MB</h3>
           </ion-label>
           <ion-range
-            [ticks]="true"
-            [snaps]="true"
-            [min]="0"
-            [max]="mFileSizes.length - 1"
+            (ionChange)="onMockFileSize($event)"
             [(ngModel)]="mFileSizeIndex"
-            (ionChange)="onMockFileSize($event)"></ion-range>
+            [max]="mFileSizes.length - 1"
+            [min]="0"
+            [snaps]="true"
+            [ticks]="true"></ion-range>
         </ion-item>
 
         <ion-item lines="full">
-          <ion-checkbox slot="start" [(ngModel)]="mUseCapacitorFilesystem"></ion-checkbox>
+          <ion-checkbox [(ngModel)]="mUseCapacitorFilesystem" slot="start"></ion-checkbox>
           <ion-label>Capacitor fileSystem (Benchmark)</ion-label>
         </ion-item>
 
         <!--WRITE-->
-        <ion-button expand="block" (click)="onStartTest()" style="margin-top: 20px">START TEST</ion-button>
+        <ion-button (click)="onStartTest()" expand="block" style="margin-top: 20px">START TEST</ion-button>
       </ng-container>
 
       <!--LOG-->
       <ion-item>
         <ion-textarea
-          placeholder="Console"
           [autoGrow]="true"
-          readonly="true"
-          style="font-size: 0.8rem; margin-bottom: 30px"
+          [ngClass]="{ 'app-log-error': mHasErrors, 'app-log-success': !mHasErrors }"
           [value]="mLogEntries"
-          [ngClass]="{ 'app-log-error': mHasErrors, 'app-log-success': !mHasErrors }">
+          placeholder="Console"
+          readonly="true"
+          style="font-size: 0.8rem; margin-bottom: 30px">
         </ion-textarea>
       </ion-item>
     </ng-container>

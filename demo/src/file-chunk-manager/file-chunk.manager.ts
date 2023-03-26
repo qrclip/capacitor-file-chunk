@@ -29,19 +29,8 @@ export class FileChunkManager {
   /////////////////////////////////////////////////////////
   // START SERVER
   public async startServer(tConfig: FileChunkManagerStartConfig): Promise<FileChunkServerInfo> {
-    let tEncryptionBase64Key = '';
-
-    // WITH ENCRYPTION
-    if (tConfig.encryption) {
-      await Sodium.ready;
-      this.mEncryption = true;
-      this.mEncryptionKey = Sodium.crypto_aead_chacha20poly1305_ietf_keygen();
-      tEncryptionBase64Key = Sodium.to_base64(this.mEncryptionKey, base64_variants.ORIGINAL);
-    } else {
-      // NO ENCRYPTION
-      this.mEncryption = false;
-      this.mEncryptionKey = null;
-    }
+    // INIT ENCRYPTION
+    let tEncryptionBase64Key = await this.initEncryption(tConfig.encryption);
 
     // START THE SERVER
     this.mFileChunkServerInfo = await this.mFileChunk.startServer({
@@ -100,6 +89,25 @@ export class FileChunkManager {
   }
 
   /////////////////////////////////////////////////////////
+  // GET PATH
+  public async getPath(tPath: string, tDirectory: Directory): Promise<string> {
+    try {
+      // CREATE EMPTY FILE
+      const tResult = await this.mFilesystem.getUri({
+        path: tPath,
+        directory: tDirectory,
+      });
+      if (tResult.uri) {
+        return tResult.uri.replace('file://', '');
+      } else {
+        return '';
+      }
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /////////////////////////////////////////////////////////
   // CREATE EMPTY FILE
   public async createEmptyFile(tPath: string, tDirectory: Directory): Promise<string> {
     try {
@@ -116,7 +124,6 @@ export class FileChunkManager {
       }
       return '';
     } catch (e) {
-      /* istanbul ignore next */
       return '';
     }
   }
@@ -154,9 +161,10 @@ export class FileChunkManager {
           method: 'get',
         }
       );
+      // IN CASE THERES A RESPONSE AND THE STATUS CODE IS 200, EVERYTHING ELSE IS ERROR
       if (tResp && tResp.status === 200) {
+        // NO ENCRYPTION
         if (!this.mEncryption) {
-          // NO ENCRYPTION
           return new Uint8Array(await tResp.arrayBuffer());
         } else {
           // WITH ENCRYPTION
@@ -176,6 +184,26 @@ export class FileChunkManager {
     this.mFileChunkServerInfo = null;
     this.mEncryptionKey = null;
     this.mEncryption = false;
+  }
+
+  /////////////////////////////////////////////////////////
+  // INIT ENCRYPTION
+  private async initEncryption(tEncryption: boolean): Promise<string> {
+    let tBase64Key = '';
+
+    // WITH ENCRYPTION INITIATE SODIUM AND CREATE A RANDOM KEY
+    if (tEncryption) {
+      await Sodium.ready;
+      this.mEncryption = true;
+      this.mEncryptionKey = Sodium.crypto_aead_chacha20poly1305_ietf_keygen();
+      tBase64Key = Sodium.to_base64(this.mEncryptionKey, base64_variants.ORIGINAL);
+    } else {
+      // NO ENCRYPTION
+      this.mEncryption = false;
+      this.mEncryptionKey = null;
+    }
+
+    return tBase64Key;
   }
 
   /////////////////////////////////////////////////////////

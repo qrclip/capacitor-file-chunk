@@ -13,7 +13,7 @@ public class FileChunkPlugin: CAPPlugin {
     private let mAuthToken = UUID().uuidString
     private var mMaxBodySize: UInt = 0;
     
-    // CONNECT INFO
+    // START SERVER
     @objc func startServer(_ call: CAPPluginCall) {
         // GET START PARAMETERS
         let tEncryptionKeyBase64 = call.getString("key", "");
@@ -25,26 +25,26 @@ public class FileChunkPlugin: CAPPlugin {
         var tChunkSize = UInt(call.getInt("chunkSize", 10024000));
         
         // SET THE MAXIMUM CONTENT LENGTH
-        if tUseEncryption {
-            tChunkSize += 12 + 16; // THE IV AND AUTH TAG
-        }
         mMaxBodySize = tChunkSize;
-        
+        if tUseEncryption {
+            mMaxBodySize += 12 + 16; // THE IV AND AUTH TAG
+        }
+
         // IT HAS TO BE STARTED IN THE MAIN THREAD
         DispatchQueue.main.async {
             // INIT THE SERVER INSTANCE
             self.initTheServerInstance(port:tPort, portMin:tPortMin, portMax:tPortMax, retries:tRetries);
-            
+
             // IF SERVER STARTED
             if self.mServer?.serverURL != nil && self.mServer!.isRunning {
                 var baseUrl = self.mServer!.serverURL!.absoluteString
                 if baseUrl.last == "/" {
                     baseUrl = String(baseUrl.dropLast())
                 }
-                
+
                 // SET CONFIGURATION OF THE PROCESSOR
                 self.mFileChunkProcessor.setConfiguration(useEncryption: tUseEncryption, keyBase64: tEncryptionKeyBase64)
-                
+
                 var tEncryptionType = "none"
                 if tUseEncryption == true {
                     tEncryptionType = "ChaCha20-Poly1305"
@@ -56,7 +56,7 @@ public class FileChunkPlugin: CAPPlugin {
                     "baseUrl": baseUrl,
                     "authToken": self.mAuthToken,
                     "encryptionType": tEncryptionType,
-                    "chunkSize": 10024000,
+                    "chunkSize": tChunkSize,
                     "ready": true
                 ])
             } else {
@@ -74,7 +74,7 @@ public class FileChunkPlugin: CAPPlugin {
         }
     }
     
-    // CONNECT INFO
+    // STOP SERVER
     @objc func stopServer(_ call: CAPPluginCall) {
         if mServer != nil {
             mServer?.stop()

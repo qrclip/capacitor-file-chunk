@@ -1,0 +1,32 @@
+<ion-content #content>
+  <app-page-header [mTitle]="'Download Fetch & Range<'"></app-page-header>
+
+  <div style="padding: 10px">
+    <ion-list>
+      <ion-item>
+        <ion-label position="stacked">Url</ion-label>
+        <ion-input (ngModelChange)="onUrlChanged()" [(ngModel)]="mUrl" type="url"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Local filename</ion-label>
+        <ion-input [(ngModel)]="mFilename" type="url"></ion-input>
+      </ion-item>
+      <div style="height: 20px"></div>
+    </ion-list>
+    <div *ngIf="mError !== ''" class="app-download-error">{{ mError }}</div>
+
+    <ion-button (click)="onDownloadFile()" *ngIf="!this.mDownloading" color="primary" expand="block"
+      >DOWNLOAD
+    </ion-button>
+
+    <ion-progress-bar *ngIf="this.mDownloading" [value]="mProgressValue"></ion-progress-bar>
+
+    <ion-button
+      (click)="onTestPiFile()"
+      *ngIf="this.mFilename === 'pi.zip' && !this.mDownloading"
+      color="secondary"
+      expand="block"
+      >TEST PI
+    </ion-button>
+  </div>
+</ion-content>

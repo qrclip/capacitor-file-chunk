@@ -1,20 +1,20 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FileChunkServerInfo } from '../../../../../capacitor-file-chunk/src';
 import { IonContent, RangeCustomEvent } from '@ionic/angular';
-import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileChunkManager } from '../../file-chunk-manager/file-chunk.manager';
+import { FileChunkServerInfo } from '../../../../src';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import { DataConverterHelper } from './data-converter.helper';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
+  selector: 'app-benchmark',
+  templateUrl: './benchmark.page.html',
+  styleUrls: ['./benchmark.page.scss'],
 })
-export class HomePage implements OnInit {
+export class BenchmarkPage implements OnInit {
   @ViewChild('content', { static: true }) mContent: IonContent | null = null;
 
   mFileChunkManager: FileChunkManager = new FileChunkManager();
-  mFileChunkServerInfo: FileChunkServerInfo | null = null; // JUST TO DISPLAY AT UI - NOT NEEDED
+  mFileChunkServerInfo: FileChunkServerInfo | null = null; // JUST TO DISPLAY AT UI - NOT NEEDED TO STORE
 
   mFileSizes: number[] = [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 4000];
   mFileSizeMB = this.mFileSizes[0];
@@ -23,6 +23,8 @@ export class HomePage implements OnInit {
   mUseCapacitorFilesystem = false;
   mRandomBuffer: Uint8Array | null = null;
   mLocalPath = '/test-file.bin';
+  mLocalPathSimFilesystemChunk = '/test-file-sim-chunk.bin';
+  mLocalPathSimFilesystemChunkLast = '/test-file-sim-chunk-last.bin';
   mLocalDir = Directory.Data;
   mLogEntries = '';
   mShowTestButton = true;
@@ -123,9 +125,29 @@ export class HomePage implements OnInit {
     }
 
     // CLEAN THE FILE
-    this.cleanCreatedTestFile();
+    await this.cleanCreatedTestFile();
 
     this.testFinished(false);
+  }
+
+  /////////////////////////////////////////////////////////
+  // ON MOCK FILE SIZE
+  public onMockFileSize(tEvent: Event) {
+    const tFileSizeIndex = +(tEvent as RangeCustomEvent).detail.value;
+    if (tFileSizeIndex >= 0 && tFileSizeIndex < this.mFileSizes.length) {
+      this.mFileSizeMB = this.mFileSizes[tFileSizeIndex];
+    }
+  }
+
+  /////////////////////////////////////////////////////////
+  // APPEND CHUNK TO FILE USING CAPACITOR FILE SYSTEM ( FOR BENCHMARKING )
+  public async appendChunkToFileUsingCapacitorFileSystem(tArray: Uint8Array): Promise<boolean> {
+    await Filesystem.appendFile({
+      path: this.mLocalPath,
+      data: (await DataConverterHelper.ConvertBlobToBase64(new Blob([tArray]))) as string,
+      directory: this.mLocalDir,
+    });
+    return true;
   }
 
   /////////////////////////////////////////////////////////
@@ -148,15 +170,6 @@ export class HomePage implements OnInit {
       this.add2Log('');
       this.add2Log('// TEST FINISHED OK');
       this.add2Log('//////////////////////////////////////////////////////////');
-    }
-  }
-
-  /////////////////////////////////////////////////////////
-  // ON MOCK FILE SIZE
-  public onMockFileSize(tEvent: Event) {
-    const tFileSizeIndex = +(tEvent as RangeCustomEvent).detail.value;
-    if (tFileSizeIndex >= 0 && tFileSizeIndex < this.mFileSizes.length) {
-      this.mFileSizeMB = this.mFileSizes[tFileSizeIndex];
     }
   }
 
@@ -281,12 +294,12 @@ export class HomePage implements OnInit {
   // CLEAN READ FILE CHUNKS FOR SIMULATION
   private async cleanReadFileChunksForSimulation(): Promise<void> {
     await Filesystem.deleteFile({
-      path: '/test-file-sim-chunk.bin',
+      path: this.mLocalPathSimFilesystemChunk,
       directory: Directory.Data,
     });
 
     await Filesystem.deleteFile({
-      path: '/test-file-sim-chunk-last.bin',
+      path: this.mLocalPathSimFilesystemChunkLast,
       directory: Directory.Data,
     });
   }
@@ -296,7 +309,7 @@ export class HomePage implements OnInit {
   private async createReadFileChunksForSimulation(tFile2ReadSize: number, tMaximumChunkSize: number): Promise<void> {
     // CREATE THE FULL CHUNK FILE
     await Filesystem.writeFile({
-      path: '/test-file-sim-chunk.bin',
+      path: this.mLocalPathSimFilesystemChunk,
       data: (await DataConverterHelper.ConvertBlobToBase64(new Blob([this.mRandomBuffer!]))) as string,
       directory: Directory.Data,
     });
@@ -308,7 +321,7 @@ export class HomePage implements OnInit {
     const tLastChunkData = this.mRandomBuffer!.slice(0, tLastChunkSize);
 
     await Filesystem.writeFile({
-      path: '/test-file-sim-chunk-last.bin',
+      path: this.mLocalPathSimFilesystemChunkLast,
       data: (await DataConverterHelper.ConvertBlobToBase64(new Blob([tLastChunkData]))) as string,
       directory: Directory.Data,
     });
@@ -317,9 +330,9 @@ export class HomePage implements OnInit {
   /////////////////////////////////////////////////////////
   // READ FILE SYSTEM SIMULATED FILE CHUNK
   private async readFileystemSimulatedFileChunk(tLast: boolean): Promise<Uint8Array | null> {
-    let tPath = '/test-file-sim-chunk.bin';
+    let tPath = this.mLocalPathSimFilesystemChunk;
     if (tLast) {
-      tPath = '/test-file-sim-chunk-last.bin';
+      tPath = this.mLocalPathSimFilesystemChunkLast;
     }
     const tContents = await Filesystem.readFile({
       path: tPath,
@@ -389,7 +402,7 @@ export class HomePage implements OnInit {
 
     // IF SIMULATED THE CAPACITOR FILESYSTEM CLEAN THE FILES
     if (this.mUseCapacitorFilesystem) {
-      this.cleanReadFileChunksForSimulation();
+      await this.cleanReadFileChunksForSimulation();
     }
   }
 
@@ -451,16 +464,5 @@ export class HomePage implements OnInit {
     const tTimeToReadInSeconds = (tTimeR1 - this.mReadTestTimeStart) / 1000;
     this.add2Log('');
     this.add2Log('# SECONDS TO READ: ' + tTimeToReadInSeconds.toPrecision(2));
-  }
-
-  /////////////////////////////////////////////////////////
-  // APPEND CHUNK TO FILE USING CAPACITOR FILE SYSTEM ( FOR BENCHMARKING )
-  public async appendChunkToFileUsingCapacitorFileSystem(tArray: Uint8Array): Promise<boolean> {
-    await Filesystem.appendFile({
-      path: this.mLocalPath,
-      data: (await DataConverterHelper.ConvertBlobToBase64(new Blob([tArray]))) as string,
-      directory: this.mLocalDir,
-    });
-    return true;
   }
 }

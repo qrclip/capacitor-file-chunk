@@ -7,6 +7,7 @@ export class FileChunkWeb extends WebPlugin implements FileChunkPlugin {
   ////////////////////////////////////////////////////////////////
   // START SERVER
   async startServer(_options: FileChunkConfiguration): Promise<FileChunkServerInfo> {
+    console.warn('FileChunk does not work on the browser!')
     return {
       version: 2,
       platform: 'web',
@@ -21,6 +22,7 @@ export class FileChunkWeb extends WebPlugin implements FileChunkPlugin {
   ////////////////////////////////////////////////////////////////
   // STOP SERVER
   async stopServer(): Promise<void> {
+    console.warn('FileChunk does not work on the browser!')
     // DO NOTHING
   }
 }

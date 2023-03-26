@@ -18,4 +18,4 @@ include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = new File('../node_modules/@capacitor/status-bar/android')
 
 include ':capacitor-file-chunk'
-project(':capacitor-file-chunk').projectDir = new File('../node_modules/capacitor-file-chunk/android')
+project(':capacitor-file-chunk').projectDir = new File('../../android')

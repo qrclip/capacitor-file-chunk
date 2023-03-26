@@ -47,7 +47,7 @@ npx cap sync
 // build.gradle
 dependencies {
     ...
-    compile 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
+    implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
 }
 ```
 ### 3. To fix the warning allowBackup add `xmlns:tools="http://schemas.android.com/tools"` and `tools:replace="android:allowBackup"` to your Manifest:
@@ -87,6 +87,10 @@ A [demonstration](https://github.com/qrclip/capacitor-file-chunk/tree/main/demo)
 
 ![My Image](./demo/src/assets/capacitor-file-chunk.jpg)
 
+In the future, we plan to expand the documentation with more examples showcasing various use cases for the Capacitor File Chunk plugin. Currently, there is an example demonstrating [how to download large files](https://github.com/qrclip/capacitor-file-chunk/tree/main/demo/src/app/download01) using the fetch API and range request headers. This example serves as a starting point for users exploring the capabilities of the plugin. As we continue to develop and enhance the plugin, we will add more examples to cover a broader range of scenarios and help users effectively leverage the plugin's functionality in their projects.
+
+Please note that although the example code is written in Angular, the base classes provided for you to use in your own projects do not rely on Angular-specific features or services. This is intentional to ensure that the plugin can be easily adapted and integrated into projects built with other frameworks. The goal is to make the Capacitor File Chunk plugin versatile and accessible to developers working with various platforms and technologies.
+
 ## Use
 
 In the demo project, you'll find a component named [usage](https://github.com/qrclip/capacitor-file-chunk/tree/main/demo/src/app/usage/usage.page.ts), which demonstrates all the methods described below. You can see how simple it is to use.
@@ -103,6 +107,16 @@ mFileChunkManager: FileChunkManager = new FileChunkManager();
 Although there are more options for starting the server (like port, port range), they aren't required.
 
 ```javascript
+// Start server configuration interface
+export interface FileChunkManagerStartConfig {
+  encryption: boolean; // Whether to use encryption or not.
+  port?: number; // Fixed port number.
+  portMin?: number; // Minimum port - for the port range to try.
+  portMax?: number; // Maximum port - for the port range to try.
+  retries?: number; // Number of retries to try and find a port.
+  chunkSize?: number; // The maximum body size for the PUT (the server adds the encryption IV and Auth Tag size).
+}
+
 const tFileChunkServerInfo = await this.mFileChunkManager.startServer({ encryption: true });
 ```
 The `tFileChunkServerInfo` variable follows this interface:
@@ -118,8 +132,7 @@ export interface FileChunkServerInfo {
   ready: boolean;
 }
 ```
-If everything is successful, "ready" should be true. You also cannot make PUT requests larger than the chunkSize, but you can set this value when you start the server.
-
+If everything is successful, "ready" should be true. You also cannot make PUT requests larger than the chunkSize, but you can set this value when you start the server. For optimal performance, using a chunk size of around 10 megabytes (default) is the sweet spot. However, feel free to experiment with different values to find the best balance for your specific use case.
 ### 3. Create an empty file
 
 Once the plugin is started and ready, you can create an empty file just like with the Capacitor Filesystem:
@@ -168,11 +181,16 @@ You're welcome to create your own fetch requests to the server instead of relyin
 
 The Capacitor File Chunk plugin provides a flexible foundation for various use cases involving large files in Capacitor applications. Some common usage examples include:
 
-- **Uploading large files** - Efficiently upload large files in Capacitor applications by reading parts of a file and uploading them in chunks. This method reduces the risk of timeouts and network errors, ensuring seamless uploading of large files for users without any loss of data or performance issues. Note that the actual implementation depends on the server and how the files are stored.
+### Uploading large files
+Efficiently upload large files in Capacitor applications by reading parts of a file and uploading them in chunks. This method reduces the risk of timeouts and network errors, ensuring seamless uploading of large files for users without any loss of data or performance issues. Note that the actual implementation depends on the server and how the files are stored.
 
-- **Downloading large files** - Download large files in smaller, manageable chunks and merge them into a single file. This is particularly useful for applications that need to download large files, such as videos or images, without consuming too much memory. Keep in mind that this feature depends on the backend. If your backend already divides files into chunks, using this feature is straightforward. However, if your backend does not divide files, you will need to make GET requests with the range header to retrieve parts of a file.
+### Downloading large files
+Download large files in smaller, manageable chunks and merge them into a single file. This is particularly useful for applications that need to download large files, such as videos or images, without consuming too much memory. Keep in mind that this feature depends on the backend. If your backend already divides files into chunks, using this feature is straightforward. However, if your backend does not divide files, you will need to make GET requests with the range header to retrieve parts of a file.
+- **[Example using fetch and range headers]((https://github.com/qrclip/capacitor-file-chunk/tree/main/demo/src/app/download01))**
 
-- **Storing offline data** - Efficiently store offline data, such as documents, images, or media files. By breaking the data down into smaller chunks and storing them in the local file system, the plugin reduces the risk of performance issues and ensures that users can access their data quickly and easily.
+
+### Storing offline data
+Efficiently store offline data, such as documents, images, or media files. By breaking the data down into smaller chunks and storing them in the local file system, the plugin reduces the risk of performance issues and ensures that users can access their data quickly and easily.
 
 #### Important Note
 
@@ -206,7 +224,7 @@ The tables below present the time taken for writing and reading operations using
 
 ### Reading
 
-The benchmarks for reading with the Capacitor Filesystem are simulated (includes the conversion from base64 to a Uint8Array), as it does not support reading files in chunks. To provide a comparable benchmark, we created two separate files: one with the size of a typical chunk and another with the size of the last chunk. By reading these files instead, we can offer a close approximation of the performance you can expect when using the Capacitor Filesystem for reading files in chunks, even though this feature is not natively supported.
+The benchmarks for reading with the Capacitor Filesystem are simulated (includes the conversion from base64 to a Uint8Array), as it does not support reading files in chunks. To provide a comparable benchmark, we created two separate files: one with the size of a typical chunk and another with the size of the last chunk. By reading these files instead, we can offer a close approximation of the performance you can expect when using the Capacitor Filesystem for reading files in chunks, even though this feature is not supported.
 
 #### Android (Mi 9T) Reading
 | Size    | Filesystem | FileChunk | FileChunk<br/>(encrypted) |
@@ -239,9 +257,9 @@ The Capacitor File Chunk plugin places a strong emphasis on data security, imple
 
 - **Encryption algorithm**: The plugin uses the ChaCha20-Poly1305 encryption algorithm, a widely recognized and robust encryption standard. This algorithm provides strong privacy for your data, making it difficult for unauthorized parties to access and read the data. Additionally, the authentication features of this encryption algorithm help prevent man-in-the-middle attacks and data manipulation, making it a reliable security solution for your Capacitor applications.
 
-- **Secure data transfer**: The plugin employs the [libsodium-jni](https://github.com/joshjdevl/libsodium-jni) library on Android and [Apple's CryptoKit](https://developer.apple.com/documentation/cryptokit/) on iOS to guarantee secure data transfer. These libraries ensure that all information transferred between the web server and your application is encrypted and protected.
+- **Secure data transfer**: The plugin employs the [libsodium-jni](https://github.com/joshjdevl/libsodium-jni) library on Android and [Apple's CryptoKit](https://developer.apple.com/documentation/cryptokit/) on iOS to guarantee secure data transfer. These libraries ensure that all information transferred between the plugin's web server and your application is encrypted and protected.
 
-- **Localhost protection**: To mitigate potential security risks associated with localhost connections, the Capacitor File Chunk plugin passes the encryption key through the plugin API rather than the server and uses random IVs to encrypt all data. This approach provides a secure solution that protects against potential vulnerabilities associated with localhost usage. Note that using HTTPS alone for localhost connections is insufficient to prevent unauthorized access or interception of data, as an attacker could potentially obtain the SSL/TLS certificate used for the connection. The plugin uses HTTP, but everything is encrypted with a temporary key that is not stored in any file on the device and resides only in memory.
+- **Localhost protection**: To mitigate potential security risks associated with localhost connections, the Capacitor File Chunk plugin passes the encryption key through the plugin API rather than the server and uses random IVs to encrypt all data. This approach provides a secure solution that protects against potential vulnerabilities associated with localhost usage. Note that using HTTPS alone for localhost connections is insufficient to prevent unauthorized access or interception of data, as an attacker could potentially obtain the SSL/TLS certificate used for the connection. The plugin uses HTTP, but everything is encrypted with a temporary random key that is not stored in any file on the device and resides only in memory.
 
 - **Streamlined security implementation**: The security implementation is designed to bypass the need for HTTPS and the complexities associated with managing and securing certificates on each platform. By leveraging direct communication with the plugin and eliminating the need for many complexities, this streamlined approach maintains a high level of security while simplifying the development process.
 
@@ -250,4 +268,11 @@ The Capacitor File Chunk plugin places a strong emphasis on data security, imple
 By implementing these comprehensive security measures, the Capacitor File Chunk plugin offers a reliable and secure solution for managing large files in your Capacitor applications. These features provide both high performance and peace of mind for developers, ensuring that your application data remains protected and private.
 
 ## Final Thoughts
-We hope you find this project useful and easy to work with. We would like to acknowledge and express our gratitude to the [Capacitor Blob Writer](https://github.com/diachedelic/capacitor-blob-writer) project, which served as a foundation for our development and significantly influenced our implementation. If you have any questions, suggestions, or encounter any problems, please do not hesitate to open an issue or submit a pull request. We are always looking to improve and welcome any feedback. Happy coding!
+
+The Capacitor File Chunk plugin is designed to enhance your application's file management capabilities by providing an efficient and secure solution for reading and writing large files in chunks. By overcoming the limitations of the Capacitor Filesystem and eliminating the need for base64 conversion, this plugin offers a more streamlined and performance-oriented approach to file handling in Capacitor applications.
+
+We would like to acknowledge and express our gratitude to the [Capacitor Blob Writer](https://github.com/diachedelic/capacitor-blob-writer) project, which inspired the original concept and code for this plugin. We encourage you to explore the demo project to learn more about the Capacitor File Chunk plugin's features and functionality, and to integrate it into your own applications as needed.
+
+We are always interested in feedback, suggestions, and improvements from the community. Please feel free to contribute to the project or reach out to us with any questions or concerns.
+
+Happy coding!
