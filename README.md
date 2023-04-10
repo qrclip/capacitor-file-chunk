@@ -172,10 +172,17 @@ When you no longer need the server, you can either let it run or stop it:
 ```javascript
 await this.mFileChunkManager.stopServer();
 ```
-
 If you need it again, simply start it. It will generate a new encryption key, use a new port, and create a new authentication token.
 
 You're welcome to create your own fetch requests to the server instead of relying on the FileChunkManager. Just review the existing code for guidance and develop a custom implementation that suits your requirements.
+
+### 8. New ( version 9.2.0 ) Read File chunk without server
+
+There is a new method readFileChunk in the plugin. This reads from the filesystem without using the server (just like the capacitor filesystem and uses the capacitor bridge)
+You can access it via FileChunkManager as follows:
+```javascript
+const tChunkData = await this.mFileChunkManager.readFileChunkFS(tPath, tOffset, tLength2Read);
+```
 
 ## Usage Examples
 
@@ -224,7 +231,7 @@ The tables below present the time taken for writing and reading operations using
 
 ### Reading
 
-The benchmarks for reading with the Capacitor Filesystem are simulated (includes the conversion from base64 to a Uint8Array), as it does not support reading files in chunks. To provide a comparable benchmark, we created two separate files: one with the size of a typical chunk and another with the size of the last chunk. By reading these files instead, we can offer a close approximation of the performance you can expect when using the Capacitor Filesystem for reading files in chunks, even though this feature is not supported.
+The benchmarks for reading with the Capacitor filesystem use the plugin's own method for reading the file chunk, since the Capacitor filesystem doesn't offer this possibility.
 
 #### Android (Mi 9T) Reading
 | Size    | Filesystem | FileChunk | FileChunk<br/>(encrypted) |

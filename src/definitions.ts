@@ -18,7 +18,18 @@ export interface FileChunkConfiguration {
   chunkSize?: number;
 }
 
+export interface FileChunkReadChunk {
+  path: string;
+  offset: number;
+  length: number;
+}
+
+export interface FileChunkReadChunkResponse {
+  data: string;
+}
+
 export interface FileChunkPlugin {
   startServer(options: FileChunkConfiguration): Promise<FileChunkServerInfo>;
   stopServer(): Promise<void>;
+  readFileChunk(options: FileChunkReadChunk): Promise<FileChunkReadChunkResponse>;
 }

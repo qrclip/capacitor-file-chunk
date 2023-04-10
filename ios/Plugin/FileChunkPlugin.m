@@ -6,4 +6,5 @@
 CAP_PLUGIN(FileChunkPlugin, "FileChunk",
            CAP_PLUGIN_METHOD(startServer, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(stopServer, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(readFileChunk, CAPPluginReturnPromise);
 )

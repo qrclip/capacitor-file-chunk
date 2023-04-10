@@ -3,6 +3,7 @@ import { Directory } from '@capacitor/filesystem/dist/esm/definitions';
 import { Filesystem } from '@capacitor/filesystem';
 import * as Sodium from 'libsodium-wrappers';
 import { base64_variants } from 'libsodium-wrappers';
+import {DataConverterHelper} from "../app/benchmark/data-converter.helper";
 
 export interface FileChunkManagerStartConfig {
   encryption: boolean;
@@ -116,6 +117,7 @@ export class FileChunkManager {
         path: tPath,
         data: '',
         directory: tDirectory,
+        recursive: true, // https://www.reddit.com/r/ionic/comments/12032s3/comment/jfbl53e/?utm_source=share&utm_medium=web2x&context=3
       });
 
       if (tResult) {
@@ -146,6 +148,16 @@ export class FileChunkManager {
     }
   }
 
+  /////////////////////////////////////////////////////////
+  // READ FILE CHUNK ( LIKE FILE SYSTEM )
+  public async readFileChunkFS(tPath: string, tOffset: number, tLength: number): Promise<Uint8Array | null> {
+    const tResp = await FileChunk.readFileChunk({
+      path: tPath,
+      offset: tOffset,
+      length: tLength,
+    });
+    return DataConverterHelper.base64ToUint8Array(tResp.data);
+  }
   /////////////////////////////////////////////////////////
   // READ FILE CHUNK
   public async readFileChunk(tPath: string, tOffset: number, tLength: number): Promise<Uint8Array | null> {

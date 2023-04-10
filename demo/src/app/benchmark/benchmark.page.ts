@@ -23,8 +23,6 @@ export class BenchmarkPage implements OnInit {
   mUseCapacitorFilesystem = false;
   mRandomBuffer: Uint8Array | null = null;
   mLocalPath = '/test-file.bin';
-  mLocalPathSimFilesystemChunk = '/test-file-sim-chunk.bin';
-  mLocalPathSimFilesystemChunkLast = '/test-file-sim-chunk-last.bin';
   mLocalDir = Directory.Data;
   mLogEntries = '';
   mShowTestButton = true;
@@ -257,6 +255,7 @@ export class BenchmarkPage implements OnInit {
       this.add2LogProgress('TEST CHUNK: ', i, tChunks2Read - 1, tLength2Read);
 
       const tArray = await this.mFileChunkManager.readFileChunk(tPath, tOffset, tLength2Read);
+
       if (tArray) {
         if (tArray.length !== tLength2Read) {
           this.add2Log('ERROR - READ SIZE NOT EQUAL: ' + tLength2Read.toString() + ' != ' + tArray.length, true);
@@ -290,61 +289,6 @@ export class BenchmarkPage implements OnInit {
     });
   }
 
-  /////////////////////////////////////////////////////////
-  // CLEAN READ FILE CHUNKS FOR SIMULATION
-  private async cleanReadFileChunksForSimulation(): Promise<void> {
-    await Filesystem.deleteFile({
-      path: this.mLocalPathSimFilesystemChunk,
-      directory: Directory.Data,
-    });
-
-    await Filesystem.deleteFile({
-      path: this.mLocalPathSimFilesystemChunkLast,
-      directory: Directory.Data,
-    });
-  }
-
-  /////////////////////////////////////////////////////////
-  // CREATE READ FILE CHUNKS FOR SIMULATION
-  private async createReadFileChunksForSimulation(tFile2ReadSize: number, tMaximumChunkSize: number): Promise<void> {
-    // CREATE THE FULL CHUNK FILE
-    await Filesystem.writeFile({
-      path: this.mLocalPathSimFilesystemChunk,
-      data: (await DataConverterHelper.ConvertBlobToBase64(new Blob([this.mRandomBuffer!]))) as string,
-      directory: Directory.Data,
-    });
-
-    let tChunks2Read = Math.ceil(tFile2ReadSize / tMaximumChunkSize);
-    let tLastChunkSize = tMaximumChunkSize - (tChunks2Read * tMaximumChunkSize - tFile2ReadSize);
-
-    // CREATE THE FULL CHUNK FILE
-    const tLastChunkData = this.mRandomBuffer!.slice(0, tLastChunkSize);
-
-    await Filesystem.writeFile({
-      path: this.mLocalPathSimFilesystemChunkLast,
-      data: (await DataConverterHelper.ConvertBlobToBase64(new Blob([tLastChunkData]))) as string,
-      directory: Directory.Data,
-    });
-  }
-
-  /////////////////////////////////////////////////////////
-  // READ FILE SYSTEM SIMULATED FILE CHUNK
-  private async readFileystemSimulatedFileChunk(tLast: boolean): Promise<Uint8Array | null> {
-    let tPath = this.mLocalPathSimFilesystemChunk;
-    if (tLast) {
-      tPath = this.mLocalPathSimFilesystemChunkLast;
-    }
-    const tContents = await Filesystem.readFile({
-      path: tPath,
-      directory: Directory.Data,
-    });
-
-    if (!tContents) {
-      return null;
-    }
-
-    return DataConverterHelper.base64ToUint8Array(tContents.data);
-  }
 
   /////////////////////////////////////////////////////////
   // TEST STEP READ TEST FILE
@@ -357,10 +301,7 @@ export class BenchmarkPage implements OnInit {
     this.add2Log('//////////////////////////////////////////////////////////');
     this.add2Log('// READ FILE');
     if (this.mUseCapacitorFilesystem) {
-      this.add2Log('WARNING: USING CAPACITOR FILE SYSTEM (NOT THE PLUGIN)');
-      // WE HAVE TO CREATE TWO FILES TO SIMULATE THE READING SINCE CAPACITOR FILESYSTEM DOES NOT READ IN CHUNKS
-      // AND SIMPLY CRASHES FOR BIG FILES
-      await this.createReadFileChunksForSimulation(tFile2ReadSize, tMaximumChunkSize);
+      this.add2Log('WARNING: USING CAPACITOR FILE SYSTEM');
     }
 
     let tChunks2Read = Math.ceil(tFile2ReadSize / tMaximumChunkSize);
@@ -384,7 +325,7 @@ export class BenchmarkPage implements OnInit {
         }
       } else {
         // USING CAPACITOR FILESYSTEM
-        const tArray = await this.readFileystemSimulatedFileChunk(tLastChunk);
+        const tArray = await this.mFileChunkManager.readFileChunkFS(tPath, tOffset, tLength2Read);
         if (tArray) {
           tReadSize = tArray.length;
         }
@@ -399,11 +340,6 @@ export class BenchmarkPage implements OnInit {
 
     // CALCULATE TIME IT TOOK TO READ
     this.calculateReadTestSeconds();
-
-    // IF SIMULATED THE CAPACITOR FILESYSTEM CLEAN THE FILES
-    if (this.mUseCapacitorFilesystem) {
-      await this.cleanReadFileChunksForSimulation();
-    }
   }
 
   /////////////////////////////////////////////////////////

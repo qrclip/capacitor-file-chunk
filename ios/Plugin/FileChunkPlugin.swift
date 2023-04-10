@@ -83,6 +83,26 @@ public class FileChunkPlugin: CAPPlugin {
         call.resolve()
     }
     
+    // READ FILE CHUNK
+    @objc func readFileChunk(_ call: CAPPluginCall) {
+        let tPath = call.getString("path", "");
+        let tOffset = UInt64(call.getInt("offset", 0));
+        let tLength = Int(call.getInt("length", 0));
+        
+        // GET THE FILE HANDLE AND READ THE CHUNK
+        guard let fileHandle = FileHandle(forReadingAtPath: tPath) else {
+            call.resolve(["data":""])
+            return;
+        }
+        defer {
+            fileHandle.closeFile()
+        }
+        fileHandle.seek(toFileOffset: tOffset)
+        var data = fileHandle.readData(ofLength: tLength)
+        fileHandle.closeFile()
+        call.resolve(["data":data.base64EncodedString()])
+    }
+    
     // HANDLE OPTIONS
     private func handleOPTIONSRequest(request: GCDWebServerRequest) -> GCDWebServerResponse? {
         return self.emptyCorsResponse(statusCode: 200, request: request)

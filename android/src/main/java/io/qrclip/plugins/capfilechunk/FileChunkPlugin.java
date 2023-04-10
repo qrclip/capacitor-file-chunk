@@ -9,6 +9,8 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Base64;
 import java.util.Random;
 
 @CapacitorPlugin(name = "FileChunk")
@@ -28,7 +30,7 @@ public class FileChunkPlugin extends Plugin {
         Integer tRetries = call.getInt("retries", 5);
         Integer tChunkSize = call.getInt("chunkSize", 10024000);
         Integer tChunkSizeFinal = tChunkSize;
-        if (tUseEncryption){
+        if (tUseEncryption) {
             tChunkSizeFinal += 12 + 16; // IV AND AUTH TAG
         }
 
@@ -40,12 +42,12 @@ public class FileChunkPlugin extends Plugin {
         tResponse.put("platform", "android");
 
         // IF SERVER CREATED
-        if(this.mServer != null && this.mServer.getListeningPort() > 0) {
+        if (this.mServer != null && this.mServer.getListeningPort() > 0) {
             boolean tEncryptionOK = this.mServer.setEncryption(tUseEncryption, tEncryptionKeyBase64);
             tResponse.put("baseUrl", "http://localhost:" + this.mServer.getListeningPort());
             tResponse.put("authToken", this.mServer.getAuthToken());
             tResponse.put("chunkSize", tChunkSize);
-            if(tUseEncryption && tEncryptionOK){
+            if (tUseEncryption && tEncryptionOK) {
                 tResponse.put("encryptionType", "ChaCha20-Poly1305");
             } else {
                 tResponse.put("encryptionType", "none");
@@ -66,11 +68,33 @@ public class FileChunkPlugin extends Plugin {
     // START SERVER
     @PluginMethod
     public void stopServer(PluginCall call) {
-        if(this.mServer != null){
+        if (this.mServer != null) {
             this.mServer.stop();
             this.mServer = null;
         }
         call.resolve();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // START SERVER
+    @PluginMethod
+    public void readFileChunk(PluginCall call) {
+        String tPath = call.getString("path");
+        Integer tOffset = call.getInt("offset", 0);
+        Integer tLength = call.getInt("length", 0);
+        JSObject tResponse = new JSObject();
+
+        byte[] tBuffer = new byte[tLength];
+        try (RandomAccessFile tRandomAccessFile = new RandomAccessFile(tPath, "r")) {
+            tRandomAccessFile.seek(tOffset); // MOVE TO OFFSET
+            tRandomAccessFile.read(tBuffer, 0, tLength);
+            tResponse.put("data",android.util.Base64.encodeToString(tBuffer, android.util.Base64.NO_WRAP));
+            call.resolve(tResponse);
+        } catch (IOException e) {
+            tResponse.put("data", "");
+            call.resolve(tResponse);
+        }
+
     }
 
     ////////////////////////////////////////////////////////////////
@@ -80,9 +104,9 @@ public class FileChunkPlugin extends Plugin {
         int tRetriesLeft = tRetries;
 
         // IF FIXED PORT SET USE THAT
-        if(tFixedPort>0){
+        if (tFixedPort > 0) {
             this.StartServerAtPort(tFixedPort, tChunkSize);
-            if(tRetries <= 0){ // IF NO RETRIES ARE SET NO MORE ARE TRIED
+            if (tRetries <= 0) { // IF NO RETRIES ARE SET NO MORE ARE TRIED
                 return;
             }
         }
