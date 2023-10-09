@@ -29,6 +29,12 @@ With the Capacitor File Chunk plugin, handling large files is now more efficient
 
 
 ## Install
+
+| Plugin Version | Capacitor Version |
+|----------------|-------------------|
+| 1.0.0          | Capacitor 5       |
+| 0.9.2          | Capacitor 4       |
+
 ```bash
 npm install capacitor-file-chunk
 npx cap sync

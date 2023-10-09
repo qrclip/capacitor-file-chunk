@@ -21,7 +21,7 @@ export class DownloadFetchRange {
   }
 
   ////////////////////////////////////////////////////////////
-  // DOWNLAOD FILE
+  // DOWNLOAD FILE
   public downloadFile(tUrl: string, tPath: string, tDirectory: Directory): void {
     // IF ALREADY DOWNLOADING RETURN
     if (this.mDownloading) {
