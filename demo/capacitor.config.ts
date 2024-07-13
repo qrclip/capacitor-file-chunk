@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'io.qrclip.capacitorfilechunkdemo',
   appName: 'capacitor-file-chunk-demo',
   webDir: 'www',
-  bundledWebRuntime: false,
 };
 
 export default config;
