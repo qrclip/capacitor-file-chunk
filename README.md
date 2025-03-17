@@ -32,6 +32,7 @@ With the Capacitor File Chunk plugin, handling large files is now more efficient
 
 | Plugin Version | Capacitor Version |
 |----------------|-------------------|
+| 3.0.0          | Capacitor 7       |
 | 2.0.0          | Capacitor 6       |
 | 1.0.0          | Capacitor 5       |
 | 0.9.2          | Capacitor 4       |
