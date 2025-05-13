@@ -1,6 +1,6 @@
 {
   "name": "capacitor-file-chunk",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Capacitor plugin to read and write files in chunks using a local server and without using capacitor bridge.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
