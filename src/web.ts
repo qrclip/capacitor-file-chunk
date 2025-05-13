@@ -32,4 +32,11 @@ export class FileChunkWeb extends WebPlugin implements FileChunkPlugin {
         console.warn('FileChunk does not work on the browser!')
         return {data: ''};
     }
+
+    ////////////////////////////////////////////////////////////////
+    // CHECK SERVER STATUS
+    async isServerRunning(): Promise<{ running: boolean }> {
+        console.warn('FileChunk does not work on the browser!')
+        return { running: false };
+    }
 }
