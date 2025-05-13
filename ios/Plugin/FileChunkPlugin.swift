@@ -103,6 +103,13 @@ public class FileChunkPlugin: CAPPlugin {
         call.resolve(["data":data.base64EncodedString()])
     }
     
+    // CHECK SERVER STATUS
+    @objc func isServerRunning(_ call: CAPPluginCall) {
+        call.resolve([
+            "running": mServer?.isRunning ?? false
+        ])
+    }
+    
     // HANDLE OPTIONS
     private func handleOPTIONSRequest(request: GCDWebServerRequest) -> GCDWebServerResponse? {
         return self.emptyCorsResponse(statusCode: 200, request: request)

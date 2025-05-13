@@ -133,4 +133,11 @@ public class FileChunkPlugin extends Plugin {
             Log.e(getLogTag(), "Failed to start server on port " + tPort, ex);
         }
     }
+
+    @PluginMethod
+    public void isServerRunning(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("running", mServer != null && mServer.getListeningPort() > 0);
+        call.resolve(ret);
+    }
 }

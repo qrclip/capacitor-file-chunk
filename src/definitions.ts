@@ -32,4 +32,5 @@ export interface FileChunkPlugin {
   startServer(options: FileChunkConfiguration): Promise<FileChunkServerInfo>;
   stopServer(): Promise<void>;
   readFileChunk(options: FileChunkReadChunk): Promise<FileChunkReadChunkResponse>;
+  isServerRunning(): Promise<{ running: boolean }>;
 }
