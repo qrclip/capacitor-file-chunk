@@ -2,8 +2,7 @@ package io.qrclip.plugins.capfilechunk;
 
 import android.util.Base64;
 
-import org.libsodium.jni.NaCl;
-import org.libsodium.jni.Sodium;
+import com.goterl.lazysodium.SodiumAndroid;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -33,7 +32,6 @@ public class FileChunkProcessor {
             return true;
         } else {
             // USING ENCRYPTION
-            NaCl.sodium();
             this.mEncrypt = true;
             this.mEncryptionKey = Base64.decode(tKeyBase64, Base64.DEFAULT);
             return this.mEncryptionKey.length == 32;
@@ -148,9 +146,10 @@ public class FileChunkProcessor {
         // Decrypt the data
         byte[] tDecryptedData = new byte[tDecryptedDataLength];
         try {
-            int tRet = Sodium.crypto_aead_chacha20poly1305_ietf_decrypt(
+            SodiumAndroid sodium = new SodiumAndroid();
+            int tRet = sodium.crypto_aead_chacha20poly1305_ietf_decrypt(
                     tDecryptedData,
-                    new int[1],
+                    new long[1],
                     new byte[0],
                     tEncryptedData,
                     tEncryptedDataLength,
@@ -174,14 +173,15 @@ public class FileChunkProcessor {
     private byte[] encryptBuffer(byte[] tBuffer) {
         // Generate a random nonce (IV)
         byte[] tIV = new byte[mIVLength];
-        Sodium.randombytes(tIV, mIVLength);
+        SodiumAndroid sodium = new SodiumAndroid();
+        sodium.randombytes_buf(tIV, mIVLength);
 
         // Encrypt the buffer
         int tEncryptedDataLength = tBuffer.length + mAuthenticationTagLength;
         byte[] tEncryptedData = new byte[tEncryptedDataLength];
 
-        int[] tActualEncryptedDataLength = new int[1];
-        int tRet = Sodium.crypto_aead_chacha20poly1305_ietf_encrypt(
+        long[] tActualEncryptedDataLength = new long[1];
+        int tRet = sodium.crypto_aead_chacha20poly1305_ietf_encrypt(
                 tEncryptedData,
                 tActualEncryptedDataLength,
                 tBuffer, tBuffer.length,
