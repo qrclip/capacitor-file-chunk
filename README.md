@@ -50,15 +50,7 @@ npx cap sync
     ...
 ```
 
-### 2. Add library to dependencies:
-```gradle
-// build.gradle
-dependencies {
-    ...
-    implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.1'
-}
-```
-### 3. To fix the warning allowBackup add `xmlns:tools="http://schemas.android.com/tools"` and `tools:replace="android:allowBackup"` to your Manifest:
+### 2. To fix the warning allowBackup add `xmlns:tools="http://schemas.android.com/tools"` and `tools:replace="android:allowBackup"` to your Manifest:
 ```xml
 <!-- AndroidManifest.xml -->
 <?xml version="1.0" encoding="utf-8"?>
@@ -272,7 +264,7 @@ The Capacitor File Chunk plugin places a strong emphasis on data security, imple
 
 - **Encryption algorithm**: The plugin uses the ChaCha20-Poly1305 encryption algorithm, a widely recognized and robust encryption standard. This algorithm provides strong privacy for your data, making it difficult for unauthorized parties to access and read the data. Additionally, the authentication features of this encryption algorithm help prevent man-in-the-middle attacks and data manipulation, making it a reliable security solution for your Capacitor applications.
 
-- **Secure data transfer**: The plugin employs the [libsodium-jni](https://github.com/joshjdevl/libsodium-jni) library on Android and [Apple's CryptoKit](https://developer.apple.com/documentation/cryptokit/) on iOS to guarantee secure data transfer. These libraries ensure that all information transferred between the plugin's web server and your application is encrypted and protected.
+- **Secure data transfer**: The plugin employs the [lazysodium-android](https://github.com/terl/lazysodium-android) library on Android and [Apple's CryptoKit](https://developer.apple.com/documentation/cryptokit/) on iOS to guarantee secure data transfer. These libraries ensure that all information transferred between the plugin's web server and your application is encrypted and protected.
 
 - **Localhost protection**: To mitigate potential security risks associated with localhost connections, the Capacitor File Chunk plugin passes the encryption key through the plugin API rather than the server and uses random IVs to encrypt all data. This approach provides a secure solution that protects against potential vulnerabilities associated with localhost usage. Note that using HTTPS alone for localhost connections is insufficient to prevent unauthorized access or interception of data, as an attacker could potentially obtain the SSL/TLS certificate used for the connection. The plugin uses HTTP, but everything is encrypted with a temporary random key that is not stored in any file on the device and resides only in memory.
 
